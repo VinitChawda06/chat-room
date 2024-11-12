@@ -5,18 +5,18 @@ const http = require('http');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const socketIo = require('socket.io');
-const config = require('./config');
-const authRoutes = require('./routes/auth');
+const config = require('./config'); // Loads configuration with environment variables
+const authRoutes = require('./routes/auth'); // Authentication routes
 
 const app = express();
 const server = http.createServer(app);
 
-// Initialize socket.io with CORS settings (specific to socket.io)
+// Initialize socket.io with CORS settings, allowing connections from CLIENT_URL
 const io = socketIo(server, {
   cors: {
-    origin: 'http://localhost:3000',  // Allow frontend to connect from localhost:3000
-    methods: ['GET', 'POST'],        // Allow only GET and POST methods
-    allowedHeaders: ['Content-Type'], // Allow headers if needed
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',  // Use environment variable or default to localhost for dev
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
   }
 });
 
@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Connect to MongoDB
+// Connect to MongoDB using the URI from config
 mongoose
   .connect(config.mongoURI, {
     useNewUrlParser: true,
@@ -74,7 +74,7 @@ mongoose
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// Start the server
+// Start the server on the specified port
 server.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
 });
